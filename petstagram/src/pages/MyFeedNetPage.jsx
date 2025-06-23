@@ -107,6 +107,11 @@ const MyFeedNetPage = ({ feeds, fetchFeeds }) => {
       return;
     }
 
+    if (!editNickname || editNickname.trim() === "") {
+      alert("닉네임은 비워둘 수 없습니다.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("username", myNickname);
     formData.append("new_username", editNickname);
@@ -121,7 +126,6 @@ const MyFeedNetPage = ({ feeds, fetchFeeds }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       
-      // 닉네임이 변경되었는지 확인하고 sessionStorage 업데이트
       if (res.data.username !== myNickname) {
         sessionStorage.setItem('nickname', res.data.username);
       }
@@ -129,7 +133,6 @@ const MyFeedNetPage = ({ feeds, fetchFeeds }) => {
       setProfile(res.data);
       setIsModalOpen(false);
       alert("프로필이 성공적으로 업데이트되었습니다.");
-      // 닉네임 변경 시 페이지를 새로고침하여 전체 컴포넌트에 반영
       if (res.data.username !== myNickname) {
         window.location.reload();
       }
@@ -330,7 +333,7 @@ const MyFeedNetPage = ({ feeds, fetchFeeds }) => {
             <button className="modal-close-btn" onClick={() => setSelectedFeed(null)}>✕</button>
             {(() => {
               const image = selectedFeed.images?.[0];
-              const imageUrl = image; // 백엔드에서 전체 URL을 제공하므로 그대로 사용
+              const imageUrl = image;
               return (
                 <img src={imageUrl} alt="상세 이미지" className="modal-image" />
               );

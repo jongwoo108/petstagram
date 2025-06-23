@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database.connection import SessionLocal
 from models.users import User
+from models.events import Feed
 from schemas.users import UserCreate, UserRead, UserLogin, ProfileRead, ProfileUpdate
 from passlib.context import CryptContext
 from typing import Optional
@@ -65,10 +66,18 @@ def update_profile(
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
 
     # 닉네임 변경 처리
-    if new_username and new_username != username:
+    if new_username and new_username.strip() and new_username != username:
+        # 새로운 닉네임이 비어있지 않은지 확인
+        if not new_username.strip():
+            raise HTTPException(status_code=422, detail="닉네임은 비워둘 수 없습니다.")
+            
         existing_user = db.query(User).filter(User.username == new_username).first()
         if existing_user:
             raise HTTPException(status_code=409, detail="이미 사용 중인 닉네임입니다.")
+        
+        # 피드 테이블의 username 업데이트
+        db.query(Feed).filter(Feed.username == username).update({"username": new_username})
+        
         db_user.username = new_username
 
     if pet_name is not None:
