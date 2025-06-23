@@ -5,13 +5,18 @@ from models.events import Feed
 
 
 def seed_feeds():
+    db: Session = SessionLocal()
+    
+    # 목업 데이터 ID 범위에 해당하는 기존 데이터 삭제
     with open("database/feeds_mock.json", "r", encoding="utf-8") as f:
         feeds = json.load(f)
-    db: Session = SessionLocal()
+        mock_ids = [feed['id'] for feed in feeds]
+        if mock_ids:
+            db.query(Feed).filter(Feed.id.in_(mock_ids)).delete(synchronize_session=False)
+            db.commit()
+
+    # 새 목업 데이터 추가
     for feed in feeds:
-        # 이미 존재하는 id는 건너뛰기(중복 방지)
-        if db.query(Feed).filter(Feed.id == feed["id"]).first():
-            continue
         db_feed = Feed(
             id=feed["id"],
             username=feed["username"],
@@ -22,9 +27,10 @@ def seed_feeds():
             category=feed["category"]
         )
         db.add(db_feed)
+    
     db.commit()
     db.close()
-    print("목업 피드 데이터가 DB에 저장되었습니다.")
+    print("목업 피드 데이터가 성공적으로 DB에 저장되었습니다.")
 
 if __name__ == "__main__":
     seed_feeds() 

@@ -48,8 +48,13 @@ def process_feed_urls(feed: Feed):
         feed.tags = []
 
 @router.get("/", response_model=List[FeedRead])
-def get_feeds(db: Session = Depends(get_db)):
-    feeds = db.query(Feed).all()
+def get_feeds(
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=50)
+):
+    offset = (page - 1) * page_size
+    feeds = db.query(Feed).order_by(Feed.id.desc()).offset(offset).limit(page_size).all()
     for feed in feeds:
         process_feed_urls(feed)
     return feeds

@@ -55,33 +55,42 @@
 // export default MainPage;
 // src/pages/MainPage.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import MainFeedCard from '../components/MainFeedCard';
 import '../styles/pages/MainPage.css';
-import logo from '../assets/main_logo.png';
+import { FaSearch, FaFilter } from 'react-icons/fa';
 import { categoryMap } from '../constants/categoryMap';
 import defaultProfilePic from '../assets/default.png';
 
-// 모달 컴포넌트
 const Modal = ({ feed, onClose }) => {
   if (!feed) return null;
+  const categoryName = categoryMap[feed.category] || '기타';
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-button" onClick={onClose}>
-          &times;
-        </button>
-        <div
-          className="modal-image"
-          style={{
-            background: `linear-gradient(to top, #d299c2, #fef9d7)`,
-            height: '300px',
-          }}
-        ></div>
-        <div className="modal-text-content">
-          <h2>{feed.title}</h2>
-          <p>{feed.content}</p>
+        <div className="modal-header">
+          <h2>{feed.subject}</h2>
+          <button onClick={onClose} className="close-button">&times;</button>
+        </div>
+        <div className="modal-body">
+          <img src={feed.images[0]} alt={feed.subject} className="modal-image" />
+          <div className="modal-info">
+            <div className="author-info">
+              <img src={feed.author?.profilePic || defaultProfilePic} alt={feed.username} className="author-profile-pic" />
+              <span>{feed.username}</span>
+            </div>
+            <p className="category">{categoryName}</p>
+            <p className="content">{feed.content}</p>
+            <div className="tags">
+              {feed.tags.map((tag, index) => <span key={index} className="tag">#{tag}</span>)}
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <p>Likes: {feed.likes}</p>
+          <p>Created at: {new Date(feed.created_at).toLocaleString()}</p>
         </div>
       </div>
     </div>
@@ -89,115 +98,134 @@ const Modal = ({ feed, onClose }) => {
 };
 
 const MainPage = () => {
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedFeed, setSelectedFeed] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [feeds, setFeeds] = useState([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [selectedFeed, setSelectedFeed] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
   const observer = useRef();
-  const isLoggedIn = !!sessionStorage.getItem('nickname');
 
-  const generateMockFeeds = (pageNumber) => {
-    const newFeeds = [
-      { id: `p${pageNumber}-1`, layout_type: 2, title: '새로운 세로 타입', content: '...', author: { nickname: '유저1', profilePic: defaultProfilePic }, likes: 10 },
-      { id: `p${pageNumber}-2`, layout_type: 3, title: '새로운 기본 타입', content: '...', author: { nickname: '유저2', profilePic: defaultProfilePic }, likes: 25 },
-      { id: `p${pageNumber}-3`, layout_type: 1, title: '새로운 큰 타입', content: '...', author: { nickname: '유저3', profilePic: defaultProfilePic }, likes: 50 },
-      { id: `p${pageNumber}-4`, layout_type: 3, title: '새로운 기본 타입', content: '...', author: { nickname: '유저4', profilePic: defaultProfilePic }, likes: 15 },
-      { id: `p${pageNumber}-5`, layout_type: 2, title: '새로운 세로 타입', content: '...', author: { nickname: '유저5', profilePic: defaultProfilePic }, likes: 33 },
-    ];
-    return newFeeds;
-  };
-  
-  const loadFeeds = useCallback(() => {
-    console.log("Loading page:", page);
+  const fetchFeeds = useCallback(async (pageNum) => {
     setLoading(true);
-    setTimeout(() => {
-      const newFeeds = generateMockFeeds(page);
-      setFeeds(prevFeeds => [...prevFeeds, ...newFeeds]);
-      setHasMore(page < 5);
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/feeds', {
+        params: { page: pageNum, page_size: 10 }
+      });
+      const newFeeds = response.data;
+      
+      setFeeds(prevFeeds => {
+        const existingIds = new Set(prevFeeds.map(f => f.id));
+        const uniqueNewFeeds = newFeeds.filter(f => !existingIds.has(f.id));
+        return [...prevFeeds, ...uniqueNewFeeds];
+      });
+      setHasMore(newFeeds.length > 0);
+    } catch (error) {
+      console.error("Error fetching feeds:", error);
+      setHasMore(false);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, [page]);
+    }
+  }, []);
 
   useEffect(() => {
-    loadFeeds();
-  }, [loadFeeds]);
+    fetchFeeds(1);
+  }, [fetchFeeds]);
 
   const lastFeedElementRef = useCallback(node => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
-        setPage(prevPage => prevPage + 1);
+        setPage(prevPage => {
+          const nextPage = prevPage + 1;
+          fetchFeeds(nextPage);
+          return nextPage;
+        });
       }
     });
     if (node) observer.current.observe(node);
-  }, [loading, hasMore]);
+  }, [loading, hasMore, fetchFeeds]);
 
-  const handleCardClick = (feed) => setSelectedFeed(feed);
-  const closeModal = () => setSelectedFeed(null);
-  const handleSearch = () => alert(`'${searchQuery}'(으)로 검색을 수행합니다.`);
+  const handleCardClick = (feed) => {
+    setSelectedFeed(feed);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedFeed(null);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    console.log('Searching for:', searchTerm);
+    // Implement search logic here
+  };
+
+  const isLoggedIn = !!sessionStorage.getItem('nickname');
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate('/');
+  };
 
   return (
-    <div className="main-feed-wrapper">
-      {/* Header and Buttons */}
-      <span onClick={() => { if (isLoggedIn) { sessionStorage.clear(); navigate('/login'); } else { navigate('/login'); }}} className="login-logout-button" >
-        {isLoggedIn ? 'Logout' : 'Login'}
-      </span>
-      <div className="main-header">
-        <img src={logo} alt="Petstagram Logo" className="main-logo" />
-      </div>
-      <div className="top-buttons">
-        <button className="my-feed-button" onClick={() => { if (!isLoggedIn) { alert('로그인이 필요합니다.'); navigate('/login'); } else { navigate('/myfeednet'); }}}>
-          내 피드 보기
-        </button>
-      </div>
-      <h2>🐾 전체 피드 (레이아웃 테스트)</h2>
-      
-      <div className="search-bar-container">
-        <input
-          type="text"
-          className="search-input"
-          placeholder="관심 있는 내용을 검색해보세요..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <button className="search-button" onClick={handleSearch}>
-          검색
-        </button>
-      </div>
-
-      <div className="filter-buttons">
-        <button className={selectedCategory === null ? 'active' : ''} onClick={() => setSelectedCategory(null)} >
-          전체
-        </button>
-        {Object.entries(categoryMap).map(([key, value]) => (
-          <button key={key} className={selectedCategory === Number(key) ? 'active' : ''} onClick={() => setSelectedCategory(Number(key))} >
-            {value.icon} {value.name}
+    <div className="main-page-container">
+      <header className="main-page-header">
+        <h1>Petstagram</h1>
+        <div className="header-actions">
+          {isLoggedIn ? (
+            <>
+              <button onClick={() => navigate('/my-feednet')}>내 피드 보기</button>
+              <button onClick={handleLogout}>로그아웃</button>
+            </>
+          ) : (
+            <button onClick={() => navigate('/login')}>로그인</button>
+          )}
+        </div>
+      </header>
+      <div className="main-page-content">
+        <div className="main-page-controls">
+          <form onSubmit={handleSearchSubmit} className="search-form">
+            <input
+              type="text"
+              placeholder="검색..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="search-input"
+            />
+            <button type="submit" className="search-button">
+              <FaSearch />
+            </button>
+          </form>
+          <button className="filter-button">
+            <FaFilter /> 필터
           </button>
-        ))}
+        </div>
+        <div className="main-page-body">
+          <div className="feed-grid">
+            {feeds.map((feed, index) => {
+              const isLastElement = index === feeds.length - 1;
+              const cardType = ['2x2', '1x2', '1x1', '1x2', '2x2', '1x1', '1x1', '2x1'][index % 8];
+              return (
+                <MainFeedCard
+                  ref={isLastElement ? lastFeedElementRef : null}
+                  key={`${feed.id}-${index}`}
+                  feed={feed}
+                  cardType={cardType}
+                  onClick={() => handleCardClick(feed)}
+                />
+              );
+            })}
+          </div>
+          {loading && <div className="loading-indicator">Loading...</div>}
+        </div>
       </div>
-
-      {/* Feed Grid */}
-      <div className="main-feed-grid">
-        {feeds.map((feed, index) => {
-          // 마지막 요소에 ref를 할당합니다.
-          if (feeds.length === index + 1) {
-            return <MainFeedCard ref={lastFeedElementRef} key={feed.id} feed={feed} onCardClick={handleCardClick} />;
-          } else {
-            return <MainFeedCard key={feed.id} feed={feed} onCardClick={handleCardClick} />;
-          }
-        })}
-      </div>
-      
-      {loading && <div className="loading-indicator">로딩 중...</div>}
-      {!hasMore && <div className="loading-indicator">모든 피드를 불러왔습니다.</div>}
-
-      <Modal feed={selectedFeed} onClose={closeModal} />
+      <Modal feed={selectedFeed} onClose={handleCloseModal} />
     </div>
   );
 };
