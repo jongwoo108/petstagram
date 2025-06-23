@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "username": "alice",
+    "subject": "멍이는 심심해요",
+    "images": ["https://plus.unsplash.com/premium_photo-1718646036930-2a765cc22a4a?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
+    "content": "산책도 없고 간식도 없어서 멍이가 하루종일 뚱한 표정만 지었어요. 장난감에도 시큰둥하네요. 내일은 꼭 산책 나가야겠어요!",
+    "tags": ["강아지", "심심"],
+    "category": 1
+  },
+  {
+    "id": 2,
+    "username": "bob",
+    "subject": "빨리 간식을 내놓으라구!",
+    "images": ["https://plus.unsplash.com/premium_photo-1719330206324-27d111ae7c8d?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
+    "content": "멍이가 식탁 앞에서 진지하게 앉아서 간식을 달라고 애타게 바라봤어요.",
+    "tags": ["강아지", "간식"],
+    "category": 2
+  },
+  {
+    "id": 3,
+    "username": "alice",
+    "subject": "옆집에 새친구가 생겼어요.",
+    "images": ["https://plus.unsplash.com/premium_photo-1719537437085-9d193356e249?q=80&w=2669&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
+    "content": "옆집에서 들리는 낯선 짖는 소리에 멍이가 깜짝 놀랐어요. 잠시 후 창밖을 보며 꼬리를 흔들더니, 새로운 친구가 생긴 걸 눈치챈 것 같아요!",
+    "tags": ["강아지", "친구"],
+    "category": 3
+  },
+  {
+    "id": 4,
+    "username": "bob",
+    "subject": "햇살 가득한 오후",
+    "images": ["https://plus.unsplash.com/premium_photo-1717524379363-1e90bcd080a9?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
+    "content": "햇살 좋은 오후, 따뜻한 창가에 누워 멍이가 편하게 낮잠을 즐겼답니다 ☀️",
+    "tags": ["강아지", "햇살"],
+    "category": 1
+  },
+  {
+    "id": 5,
+    "username": "alice",
+    "subject": "공원 산책",
+    "images": ["https://images.unsplash.com/photo-1745108113745-32a27980c6b9?q=80&w=2727&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
+    "content": "맑은 날씨 덕분에 멍이랑 공원 산책을 다녀왔어요. 초록 잔디를 맘껏 뛰었어요!",
+    "tags": ["강아지", "산책"],
+    "category": 1
+  },
+  {
+    "id": 6,
+    "username": "bob",
+    "subject": "고양이의 하루",
+    "images": ["https://images.unsplash.com/photo-1583071809065-ccb5208b2e69?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
+    "content": "고양이 친구는 오늘도 조용하고 평화롭게 집안을 누비며 하루를 보냈어요 💕",
+    "tags": ["고양이", "하루"],
+    "category": 2
+  }
+] 
